@@ -103,6 +103,10 @@ func StaticFile(relativePath, filepath string) gin.IRoutes {
 	return engine().StaticFile(relativePath, filepath)
 }
 
+func Proxy(relativePath, proxyPath string, preHandlers ...gin.HandlerFunc) gin.IRoutes {
+	return engine().Proxy(relativePath, proxyPath, preHandlers...)
+}
+
 // Static serves files from the given file system root.
 // Internally a http.FileServer is used, therefore http.NotFound is used instead
 // of the Router's NotFound handler.

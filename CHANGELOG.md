@@ -1,5 +1,11 @@
 # Gin ChangeLog
 
+## Gin v1.7.8
+
+### ENHANCEMENTS
+
+* Add Proxy() func to gin.Router & gin.Engine, to support reverse proxy
+
 ## Gin v1.7.7
 
 ### BUGFIXES

@@ -5,6 +5,9 @@
 package gin
 
 import (
+	"bytes"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"path"
 	"regexp"
@@ -186,6 +189,52 @@ func (group *RouterGroup) StaticFS(relativePath string, fs http.FileSystem) IRou
 	// Register GET and HEAD handlers
 	group.GET(urlPattern, handler)
 	group.HEAD(urlPattern, handler)
+	return group.returnObj()
+}
+
+// Proxy proxy a existed api
+func (group *RouterGroup) Proxy(relativePath string, proxyPath string, preHandlers ...HandlerFunc) IRoutes {
+	var proxyHandler = func(c *Context) {
+		var body []byte
+		var err error
+		if body, err = ioutil.ReadAll(c.Request.Body); err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+		var req *http.Request
+		var reqBodyReader io.Reader
+		if body != nil {
+			reqBodyReader = bytes.NewReader(body)
+		}
+		if req, err = http.NewRequest(c.Request.Method, proxyPath, reqBodyReader); err != nil {
+			c.AbortWithError(http.StatusBadGateway, err)
+			return
+		}
+		req.Method = c.Request.Method
+		req.Header = c.Request.Header
+		req.URL.Path = proxyPath
+		var resp *http.Response
+		if resp, err = (&http.Client{}).Do(req); err != nil {
+			c.AbortWithError(http.StatusBadGateway, err)
+			return
+		}
+		defer resp.Body.Close()
+		if body, err = ioutil.ReadAll(resp.Body); err != nil {
+			c.AbortWithError(http.StatusBadGateway, err)
+			return
+		}
+		c.Writer.Write(body)
+	}
+	preHandlers = append(preHandlers, proxyHandler)
+	group.Any(relativePath, preHandlers...)
+	return group.returnObj()
+}
+
+// @TODO
+// RestController register a rest controller to gin
+// @param controller 主要的业务处理逻辑，
+func (group *RouterGroup) RestController(relativePath string, controller func(params ...interface{}), preHandler HandlerFunc) IRoutes {
+	// 通过反射，去获取controller的参数类型，并进行注入
 	return group.returnObj()
 }
 
