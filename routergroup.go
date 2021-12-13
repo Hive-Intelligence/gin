@@ -212,6 +212,7 @@ func (group *RouterGroup) Proxy(relativePath string, proxyPath string, preHandle
 		}
 		req.Method = c.Request.Method
 		req.Header = c.Request.Header
+		req.URL = c.Request.URL
 		req.URL.Path = proxyPath
 		var resp *http.Response
 		if resp, err = (&http.Client{}).Do(req); err != nil {
@@ -227,14 +228,6 @@ func (group *RouterGroup) Proxy(relativePath string, proxyPath string, preHandle
 	}
 	preHandlers = append(preHandlers, proxyHandler)
 	group.Any(relativePath, preHandlers...)
-	return group.returnObj()
-}
-
-// @TODO
-// RestController register a rest controller to gin
-// @param controller 主要的业务处理逻辑，
-func (group *RouterGroup) RestController(relativePath string, controller func(params ...interface{}), preHandler HandlerFunc) IRoutes {
-	// 通过反射，去获取controller的参数类型，并进行注入
 	return group.returnObj()
 }
 
